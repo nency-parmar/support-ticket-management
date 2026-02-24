@@ -14,11 +14,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    role: {
-        type: String,
-        enum: ["user", "admin", "agent"],
-        default: "user"
+    role_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Role",
+        required: true
     }
-}, { timestamps: true });
+}, { timestamps: { createdAt: 'created_at', updatedAt: false } });
 
 module.exports = mongoose.model("User", userSchema);

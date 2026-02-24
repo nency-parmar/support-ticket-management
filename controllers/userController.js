@@ -1,101 +1,64 @@
-const User = require("../models/User")
+const User = require("../models/User");
+const Role = require("../models/Role");
+const bcrypt = require("bcryptjs");
 
 exports.createUser = async (req, res) => {
     try {
+        const { name, email, password, role } = req.body;
+
+        if (!name || !email || !password || !role) {
+            return res.status(400).json({ message: "Please provide name, email, password, and role" });
+        }
+
+        const existingRole = await Role.findOne({ name: role.toUpperCase() });
+        if (!existingRole) {
+            return res.status(400).json({ message: "Invalid role specified" });
+        }
+
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ message: "User already exists" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         const user = await User.create({
-            ...req.body,
-            created: req.user.id
+            name,
+            email,
+            password: hashedPassword,
+            role_id: existingRole._id
         });
-        res.status(201).json(user);
+
+        res.status(201).json({
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: existingRole.name,
+            created_at: user.created_at
+        });
+    } catch (error) {
+        console.error("Create User Error:", error);
+        res.status(500).json({ message: "Server error during creating user" });
     }
-    catch (error) {
-        console.log("Create User Error: ", error)
-        res.status(500).json({ message: "Server Error During creating user..." })
-    }
-}
+};
 
 exports.getAllUsers = async (req, res) => {
     try {
-        const user = await User.find()
-            .populate("createdBy", "name email")
-            .populate("assignedTo", "name email");
+        const users = await User.find()
+            .select("-password")
+            .populate("role_id", "name");
 
-        res.json(user);
+        const formattedUsers = users.map(user => ({
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role_id ? user.role_id.name : null,
+            created_at: user.created_at
+        }));
+
+        res.json(formattedUsers);
     } catch (error) {
         console.error("Get All User Error:", error);
         res.status(500).json({ message: "Server error during fetching users" });
-    }
-};
-
-exports.getUserById = async (req, res) => {
-    try {
-        const user = await User.findById(req.params.id)
-            .populate("createdBy", "name email")
-            .populate("assignedTo", "name email");
-
-        if (!User) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-        res.json({
-            success: true,
-            data: user
-        });
-    } catch (error) {
-        console.error("Get User Error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Server error during fetching user"
-        });
-    }
-};
-
-exports.updateUser = async (req, res) => {
-    try {
-        const user = await User.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        );
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-        res.json({
-            success: true,
-            data: user
-        });
-    } catch (error) {
-        console.error("Update Ticket Error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Server error during updating User"
-        });
-    }
-};
-
-exports.deleteUser = async (req, res) => {
-    try {
-        const user = await User.findByIdAndDelete(req.params.id);
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-        res.json({
-            success: true,
-            message: "User deleted successfully"
-        });
-    } catch (error) {
-        console.error("Delete User Error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Server error during deleting user"
-        });
     }
 };
