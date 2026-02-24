@@ -204,28 +204,6 @@ Request → protect → authorize → controller → response
 
 ---
 
-# Common Mistakes Students Make
-
-1. Forgetting to export router
-2. Not using protect before authorize
-3. Not sending Authorization header
-4. Using wrong HTTP method (GET instead of POST)
-5. Not handling async errors properly
-
----
-
-# Viva Questions
-
-1. What is Router in Express?
-2. Difference between protect and authorize?
-3. Why middleware order matters?
-4. Why use role-based authorization?
-5. What happens if token is expired?
-6. Why PATCH used instead of PUT?
-7. Why separate route files?
-
----
-
 # Summary
 
 ✔ Modular Routing
