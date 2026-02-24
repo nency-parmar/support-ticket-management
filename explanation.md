@@ -1,4 +1,4 @@
-# Express.js Ticket Management System - Routes Documentation
+# Ticket Management System - Routes Documentation
 
 This document explains all route files used in the Ticket Management System.
 
